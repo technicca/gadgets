@@ -4,7 +4,7 @@ sudo cp target/release/ask /usr/local/bin/
 
 sudo vim /usr/local/bin/.env
 
-Enter your OPENAI_API_KEY and OPENAI_API_BASE or in your .bashrc or .zshrc file: export OPENAI_API_KEY= and export OPENAI_API_BASE
+Enter your OPENAI_API_KEY, OPENAI_API_BASE, and CHATGPT_CLI_MODEL or in your .bashrc or .zshrc file: export OPENAI_API_KEY= and export OPENAI_API_BASE=, export CHATGPT_CLI_MODEL=
 
 ask hi
 
