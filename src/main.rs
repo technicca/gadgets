@@ -2,7 +2,6 @@ use clap::Parser;
 use dirs;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
-use rustix::process;
 use serde::{Deserialize, Serialize};
 use std::fs::OpenOptions;
 use std::time::Duration;
@@ -13,7 +12,7 @@ use std::{
     fs::{self},
     io::{Error, Read},
 };
-use sys_info::boottime;
+use chrono::Utc;
 
 const MAX_TOKENS: i64 = 2000;
 const DEFAULT_TIMEOUT_SECS: u64 = 120;
@@ -21,6 +20,7 @@ const DEFAULT_TIMEOUT_SECS: u64 = 120;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Log {
+    timestamp: String,
     role: String,
     content: String,
     tokens: i64,
@@ -48,11 +48,13 @@ fn create_message(role: String, content: String) -> Message {
 
 fn create_log(role: String, content: String, tokens: i64) -> Log {
     Log {
+        timestamp: Utc::now().to_rfc3339(),
         role,
         content,
         tokens,
     }
 }
+
 
 fn main() -> Result<(), Error> {
     
@@ -75,7 +77,7 @@ fn main() -> Result<(), Error> {
     // get OPENAI_API_KEY from environment variable
     let key = "OPENAI_API_KEY";
     let openai_api_key = env::var(key).expect(&format!("{} not set", key));
-    let openai_api_base = env::var("OPENAI_API_BASE").unwrap_or_else(|_| String::from("https://api.openai.com/v1/chat/completions"));
+    let openai_api_base = env::var("OPENAI_API_BASE").unwrap_or_else(|_| String::from("https://api.openai.com/v1/chat/completions/"));
     // get the prompt from the user
     let prompt = args.prompt.join(" ");
 
@@ -85,22 +87,12 @@ fn main() -> Result<(), Error> {
         .or_else(|| env::var("CHATGPT_CLI_MODEL").ok())
         .unwrap_or_else(|| "gpt-3.5-turbo".to_string());
 
-    // Get the boottime of the system
-    let boot_time = boottime().expect("Unable to get boot time");
-    let boot_time_since_unix_epoch = boot_time.tv_sec;
 
     // load the chatlog for this terminal window
     let chatlog_path = dirs::home_dir()
-        .expect("Failed to get home directory")
-        .join(".ask")
-        .join(boot_time_since_unix_epoch.to_string())
-        .join(
-            process::getppid()
-                .expect("Failed to get parent process id")
-                .as_raw_nonzero()
-                .to_string(),
-        )
-        .join("chatlog.json");
+    .expect("Failed to get home directory")
+    .join(".ask/ask_log.json");
+
 
     fs::create_dir_all(chatlog_path.parent().unwrap())?;
 
