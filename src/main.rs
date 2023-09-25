@@ -8,6 +8,8 @@ use std::fs::OpenOptions;
 use std::time::Duration;
 use std::{
     env,
+    path::PathBuf,
+    env::current_exe,
     fs::{self},
     io::{Error, Read},
 };
@@ -15,6 +17,7 @@ use sys_info::boottime;
 
 const MAX_TOKENS: i64 = 2000;
 const DEFAULT_TIMEOUT_SECS: u64 = 120;
+
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Log {
@@ -52,6 +55,21 @@ fn create_log(role: String, content: String, tokens: i64) -> Log {
 }
 
 fn main() -> Result<(), Error> {
+    
+    let dotenv_path = match current_exe() {
+        Ok(mut path) => {
+            path.pop(); // This will remove the binary name from the path.
+            path.push(".env"); // This will append the .env file name to the path.
+            path
+        },
+        Err(e) => {
+            eprintln!("Failed to get current binary path: {}", e);
+            PathBuf::from(".env") // Fallback to looking for .env in the current directory.
+        },
+    };
+    
+    dotenv::from_path(dotenv_path.as_path()).ok();
+    
     let args = CliArgs::parse();
 
     // get OPENAI_API_KEY from environment variable
