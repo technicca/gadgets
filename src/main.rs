@@ -13,6 +13,7 @@ use std::{
     io::{Error, Read},
 };
 use chrono::Utc;
+use indicatif::{ProgressBar, ProgressStyle};
 
 const MAX_TOKENS: i64 = 2000;
 const DEFAULT_TIMEOUT_SECS: u64 = 120;
@@ -147,6 +148,13 @@ fn main() -> Result<(), Error> {
         .ok()
         .and_then(|x| x.parse().ok())
         .unwrap_or(DEFAULT_TIMEOUT_SECS); // default value of 120 seconds
+    // Create a spinner
+    let spinner = ProgressBar::new_spinner();
+    spinner.set_style(ProgressStyle::default_spinner());
+
+    // Start the spinner
+    spinner.enable_steady_tick(Duration::from_millis(100));
+
     let response = client
         .post(&openai_api_base)
         .timeout(Duration::from_secs(timeout_secs))
@@ -156,6 +164,9 @@ fn main() -> Result<(), Error> {
         .unwrap()
         .json::<serde_json::Value>()
         .unwrap();
+
+    // Stop the spinner
+    spinner.finish_and_clear();
 
     // if the response is an error, print it and exit
     match response["error"].as_object() {
