@@ -10,4 +10,5 @@ ask hi
 
 The log is stored in ~/.ask/ask_log.json
 
-gcl - automatically converts https to ssh when doing git clone
+git-ssh-key -> quickly generate a git ssh key
+gcl -> automatically converts https to ssh when doing git clone

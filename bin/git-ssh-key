@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Check if the email argument is provided
+if [ -z "\\$1" ]
+  then echo "Please provide your email as an argument"
+  exit
+fi
+
+# Check if the .ssh directory exists
+ssh_dir="/home/$USER/.ssh"
+if [ ! -d "$ssh_dir" ]; then
+  echo "Directory $ssh_dir doesn't exist, creating it now"
+  mkdir -p "$ssh_dir"
+fi
+
+# Generate a new SSH key
+ssh-keygen -t rsa -b 4096 -C "${1}" -f "$ssh_dir/id_rsa"
+
+# Start the ssh-agent in the background
+eval "$(ssh-agent -s)"
+
+# Add your SSH private key to the ssh-agent
+ssh-add "$ssh_dir/id_rsa"
+
+# Check if xclip or xsel is available for clipboard copying
+if command -v xclip > /dev/null; then
+  echo "xclip is installed, using xclip for clipboard operations"
+  xclip -selection clipboard < "$ssh_dir/id_rsa.pub"
+  echo "SSH key copied:"
+  xclip -o
+elif command -v xsel > /dev/null; then
+  echo "xsel is installed, using xsel for clipboard operations"
+  xsel --clipboard --input < "$ssh_dir/id_rsa.pub"
+  echo "SSH key copied:"
+  xsel --output --clipboard
+else
+  echo "Neither xclip nor xsel is available, clipboard operations will not be possible"
+  echo "Please manually copy the SSH public key and add it to your GitHub account:"
+fi
+
+# Print the SSH public key
+cat "$ssh_dir/id_rsa.pub"
+
