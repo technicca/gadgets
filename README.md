@@ -9,3 +9,5 @@ Enter your OPENAI_API_KEY, OPENAI_API_BASE, and CHATGPT_CLI_MODEL or in your .ba
 ask hi
 
 The log is stored in ~/.ask/ask_log.json
+
+gcl - automatically converts https to ssh when doing git clone
